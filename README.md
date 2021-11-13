@@ -16,4 +16,11 @@
 
  - Subtracting a date from an offset.
    + `3d - 2021/04/28  # will throw error`
- - 
+
+## Todo
+
+ - Notations for today (date only value) and now (datetime value).
+ - Allow compound offsets.
+   + 2w4d5h: 2 weeks 4 days 5 hours
+ - Till next Friday / January.
+ - Change output format.
