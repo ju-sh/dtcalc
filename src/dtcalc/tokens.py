@@ -1,8 +1,8 @@
-import pytest
-
 import dataclasses
 import datetime
 import re
+
+import dtcalc.dtfmt
 
 @dataclasses.dataclass
 class Token:
@@ -37,6 +37,7 @@ TOKPATTS = {
     "RPAR": re.compile(r' *(?P<RPAR>\))'),
     "OP": re.compile(r' *(?P<OP>\+|-)'),
     "SUNIT": re.compile(r' *(?P<SUNIT>(?P<_SCALE>\d+)(?P<_UNIT>w|d|h|m))'),
+    "DTIME": dtcalc.dtfmt.get_pattern(INDTFMT),
 }
 
 def sunit_to_timedelta(scale: int, unit: str) -> datetime.timedelta:
@@ -51,10 +52,3 @@ def sunit_to_timedelta(scale: int, unit: str) -> datetime.timedelta:
     if unit == "s":
         return datetime.timedelta(seconds=scale)
     raise ValueError
-
-@pytest.mark.parametrize("scale,unit,expected", [
-    (2, "w", datetime.timedelta(days=2*7)),
-    (321, "d", datetime.timedelta(days=321)),
-])
-def test_sunit_to_timedelta(scale, unit, expected):
-    assert sunit_to_timedelta(scale, unit) == expected
