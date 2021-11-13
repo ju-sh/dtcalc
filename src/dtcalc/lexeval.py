@@ -70,16 +70,16 @@ def next_tok(inp: str, pos: int = 0) -> Tuple[tokens.Token, int]:
                 unit = mobj["_UNIT"]
                 tdval = sunit_to_td(scale, unit)
                 return tokens.SUNIT(start, end, tdval), end
-            if toktype == "DTIME":
-                dtval = datetime.datetime.strptime(mobj["DTIME"], INDTFMT)
-                return tokens.DTIME(start, end, dtval), end
+            #elif toktype == "DTIME":
+            dtval = datetime.datetime.strptime(mobj["DTIME"], INDTFMT)
+            return tokens.DTIME(start, end, dtval), end
     raise LexError(inp, pos)
 
 def evaluate(op: tokens.OP, fst: tokens.Token, snd: tokens.Token) -> tokens.Token:
     if op.value == "+":
         if isinstance(fst, tokens.DTIME):
             if isinstance(snd, tokens.DTIME):  # D,D,+
-                raise ValueError("Can add two dates!")
+                raise ValueError("Can't add two dates!")
             # elif isinstance(snd, tokens.SUNIT):
             else:  # D,S,+
                 return tokens.DTIME(-1, -1, fst.value + snd.value)
@@ -91,7 +91,7 @@ def evaluate(op: tokens.OP, fst: tokens.Token, snd: tokens.Token) -> tokens.Toke
             #elif isinstance(snd, tokens.SUNIT):
             else:  # S,S,+
                 return tokens.SUNIT(-1, -1, fst.value + snd.value) 
-    #elif op.value == "+":
+    #elif op.value == "-":
     else:
         if isinstance(fst, tokens.DTIME):
             if isinstance(snd, tokens.DTIME):  # D,D,-
@@ -181,3 +181,7 @@ def eval_postfix(toks: List[tokens.Token]) -> Union[tokens.DTIME, tokens.SUNIT]:
             stack.append(val)
     return stack[-1]
             
+def lexeval(inp: str, indtfmt: str) -> Union[datetime.datetime, datetime.timedelta]:
+    infix_toks = lexer(inp)
+    postfix_toks = infix_to_postfix(infix_toks)
+    result = eval_postfix(postfix_toks)

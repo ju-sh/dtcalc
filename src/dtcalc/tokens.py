@@ -28,16 +28,3 @@ class LPAR(Token):
 @dataclasses.dataclass
 class RPAR(Token):
     pass
-
-def sunit_to_timedelta(scale: int, unit: str) -> datetime.timedelta:
-    if unit == "w":
-        return datetime.timedelta(weeks=scale)
-    if unit == "d":
-        return datetime.timedelta(days=scale)
-    if unit == "h":
-        return datetime.timedelta(hours=scale)
-    if unit == "m":
-        return datetime.timedelta(minutes=scale)
-    if unit == "s":
-        return datetime.timedelta(seconds=scale)
-    raise ValueError
