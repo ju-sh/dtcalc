@@ -1,7 +1,6 @@
 from typing import List, Sequence
 import calendar
 import datetime
-import math
 import re
 
 def list_to_patt(lst: Sequence[str], name: str) -> str:
