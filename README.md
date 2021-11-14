@@ -6,12 +6,11 @@ The package is self-contained and all it needs to run is a recent Python impleme
 ## Why
 I've known people who would've liked to have a way to quickly do basic arithmetic on datetime values. For reasons like:
 
- - How many days has it been since my birthday?
+ - How many days would have passed by this June since my birthday?
  - How long is it till my friend's  wedding anniversary?
  - Did the telecom company did their math right? Does my balance expire a few days *before* it should have?
  - Raised a ticket in a support portal. Issue is supposed to be resolved within 12 days. Okay, when is that?
 
-<!--
 ## Installation
 dtcalc can installed from PyPI.
 
@@ -20,19 +19,52 @@ pip install dtcalc
 ```
 
 Python>=3.7 is needed.
--->
 
 ## Usage
 
-### TODO Datetime values
- - The default input datetime value format is `"%Y/%m/%d"`.
+```
+python3 -m dtcalc [--in-dtfmt INDTFMT] [--out-dtfmt OUTDTFMT] INPUT
+```
+
+Or if you got an alias like `alias dtcal='python3 -m dtcalc'`,
+
+```
+dtcalc [--in-dtfmt INDTFMT] [--out-dtfmt OUTDTFMT] INPUT
+```
+
+### Example usages
+
+```
+$ dtcalc "3d (2021-11-04 - 2021-11-06)" --in-dtfmt "%Y-%m-%d"
+-2 days
+
+$ dtcalc "3d (2021-11-04 11:30 - 2021-11-04 10:30)" --in-dtfmt "%Y-%m-%d %H:%M"m dtc
+1 hours
+
+$ dtcal --out-dtfmt "%B %d, %Y" "2021/04/11 + 22w"
+September 12, 2021
+
+$ dtcal --out-dtfmt "%B %d, %Y" "2021/04/11 - 2020/11/12 +2d + 3w + 4h + 2m"
+24 weeks, 5 days, 4 hours, 2 minutes
+```
+
+### Datetime values
+The default input and output datetime value format is `"%Y/%m/%d"` (as in `2021/11/14`)
+
+Most format codes mentioned [here][10] except `%Z` can be used. The format codes are mentioned at the end of this README.
+
+The default datetime format can be changed with the following options:
+
+ - `--in-dtfmt`: for input datetime format
+ - `--out-dtfmt`: for output datetime format
+
+`--out-dtfmt` has effect only if the result is a datetime value. If it is an offset value instead, it will be printed in a preset format (I hope to work on that).
 
 ## Changing datetime format
 Input and output datetime formats can be changed using `--in-dtfmt` and `--out-dtfmt` respectively.
 
 Output format is effective only if result is a datetime. If result is an offset, output format is ignored.
 
-Most format codes mentioned [here][10] except `%Z` can be used. The format codes are mentioned at the end of this README.
 
 ### Datetime offsets
 Following units can be used to create datetime offset values:
@@ -131,6 +163,10 @@ The actual value of some of the format codes are locale-dependent. Examples are 
  - `V`:
 -->
 
+## Contribute
+This package was hastily put-together as part of an event and as a result almost certainly has got bugs. If you spot any, please tell me about it. :)
+
+
 ## Todo
 
  - Add seconds as a unit.
@@ -139,5 +175,19 @@ The actual value of some of the format codes are locale-dependent. Examples are 
    + 2w4d5h: 2 weeks 4 days 5 hours
  - Till next Friday / January.
  - Change output format.
+ - Add logger.
+
 
 [10]: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes
+
+<!--
+## More examples
+Remember the scenarios mentioned under the 'Why' section? Here's how we could solve them using dtcal.
+
+### How many days would have passed by this June since my birthday?
+If my birthday was on 1982 March 31 and we are looking at June 2021, we can try
+
+```
+dtcal --in-dtfmt "%Y %B %d" "2021 June 01 - 1982 March 31"
+```
+-->

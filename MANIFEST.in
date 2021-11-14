@@ -1,3 +1,4 @@
+recursive-include src *.py
 graft tests
 
 include LICENSE.md
@@ -7,4 +8,5 @@ include .flake8
 include mypy.ini
 include .coveragerc
 
+prune .github
 global-exclude __pycache__ *.py[oc] *.sw[op]

@@ -5,7 +5,7 @@ long_description = pathlib.Path("README.md").read_text()
 
 setuptools.setup(
     name="dtcalc",
-    version="0.1-alpha1",
+    version="0.1-alpha2",
     author="Julin S",
     author_email="",
     description="Find difference between dates and times",

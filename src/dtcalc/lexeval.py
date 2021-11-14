@@ -63,20 +63,21 @@ def next_tok(inp: str, tokpatts, indtfmt: str, pos: int = 0) -> Tuple[tokens.Tok
             # leading white space would be included, yeah
             start = mobj.start()
             end = mobj.end()
-            if toktype == "LPAR":
-                return tokens.LPAR(start, end), end
-            if toktype == "RPAR":
-                return tokens.RPAR(start, end), end
-            if toktype == "OP":
-                return tokens.OP(start, end, mobj["OP"]), end
+
+            if toktype == "DTIME":
+                dtval = datetime.datetime.strptime(mobj["DTIME"], indtfmt)
+                return tokens.DTIME(start, end, dtval), end
             if toktype == "SUNIT":
                 scale = int(mobj["_SCALE"])
                 unit = mobj["_UNIT"]
                 tdval = sunit_to_td(scale, unit)
                 return tokens.SUNIT(start, end, tdval), end
-            #elif toktype == "DTIME":
-            dtval = datetime.datetime.strptime(mobj["DTIME"], indtfmt)
-            return tokens.DTIME(start, end, dtval), end
+            if toktype == "OP":
+                return tokens.OP(start, end, mobj["OP"]), end
+            if toktype == "LPAR":
+                return tokens.LPAR(start, end), end
+            if toktype == "RPAR":
+                return tokens.RPAR(start, end), end
     raise LexError(inp, pos)
 
 def evaluate(oprtr: tokens.OP, fst: tokens.Token, snd: tokens.Token) -> tokens.Token:
