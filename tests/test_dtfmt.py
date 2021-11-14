@@ -1,4 +1,5 @@
 import calendar
+import datetime
 import re
 
 import pytest
@@ -28,3 +29,12 @@ class TestGetPattern:
     def test_invalid(self, fmt):
         with pytest.raises(ValueError):
             dtcalc.dtfmt.get_pattern(fmt)
+
+@pytest.mark.parametrize("tdobj,expected", [
+    (datetime.timedelta(days=1), "1 days"),
+    (datetime.timedelta(days=-1), "-1 days"),
+    (datetime.timedelta(weeks=2,days=-5), "1 weeks, 2 days"),
+    (datetime.timedelta(hours=2,minutes=-1), "1 hours, 59 minutes"),
+])
+def test_fmt_td(tdobj, expected):
+    assert dtcalc.dtfmt.fmt_td(tdobj) == expected

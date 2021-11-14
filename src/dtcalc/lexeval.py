@@ -1,7 +1,6 @@
 """
 Lex and evaluate input.
 """
-from pprint import pprint
 
 from typing import Tuple, Union, List
 import dataclasses
@@ -112,7 +111,6 @@ def evaluate(op: tokens.OP, fst: tokens.Token, snd: tokens.Token) -> tokens.Toke
                 return tokens.SUNIT(-1, -1, fst.value - snd.value) 
             
 def lexer(inp: str, TOKPATTS, INDTFMT: str) -> List[tokens.Token]:
-    pprint(TOKPATTS)
     """
     Perform lexical analysis (tokenization).
     Accept an input string and produce a list of tokens
@@ -164,9 +162,6 @@ def infix_to_postfix(toks: List[tokens.Token]) -> List[tokens.Token]:
                 stack.pop()  # pop the tokens.LPAR
             except IndexError:
                 raise ValueError("Unmatched parenthesis!")
-        #print(f"post: {post}")
-        #print(f"stack: {stack}")
-        #print("--------------")
     # stack should be empty at this point
     if stack:
         raise ValueError("Unmatched parenthesis!")

@@ -9,6 +9,5 @@ if __name__ == "__main__":
     parser.add_argument("input")
 
     args = parser.parse_args()
-    print(args)
-    result = lexeval(args.input, args.in_dtfmt)
+    result = lexeval(args.input, args.in_dtfmt, args.out_dtfmt)
     print(result)

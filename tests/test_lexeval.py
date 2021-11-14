@@ -190,7 +190,8 @@ def test_lexer(TOKPATTS, inp, indtfmt, expected):
     assert lexer(inp, TOKPATTS, indtfmt) == expected
 
 @pytest.mark.parametrize("inp,in_dtfmt,out_dtfmt,expected",[
-    ("2021/11/09 +  2d", "%Y/%m/%d", "%Y/%m/%d", "2021/11/11")  # datetime.datetime(2021, 11, 11)),
+    ("2021/11/09 +  2d", "%Y/%m/%d", "%Y/%m/%d", "2021/11/11"),  # datetime.datetime(2021, 11, 11))
+    ("2021/11/09 -  2021/11/10", "%Y/%m/%d", "%Y/%m/%d", "-1 days"),  # datetime.datetime(2021, 11, 11)),
 ])
 def test_lexeval(inp, in_dtfmt, out_dtfmt, expected):
     assert lexeval(inp, in_dtfmt, out_dtfmt) == expected

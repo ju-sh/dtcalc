@@ -1,13 +1,15 @@
+from typing import List, Sequence
 import calendar
 import datetime
+import math
 import re
 
-def list_to_patt(lst: 'List[str]', name: str) -> str:
+def list_to_patt(lst: Sequence[str], name: str) -> str:
     """
     Beware of having empty string in lst!
     """
     # longer strings need to be matched first
-    lst.sort(key=len, reverse=True)
+    lst = sorted(lst, key=len, reverse=True)
     patt = "|".join(re.escape(elem) for elem in lst)
     patt = f"(?P<{name}>{patt})"
     return patt
@@ -84,13 +86,11 @@ def get_pattern(fmt: str) -> re.Pattern :
     regex pattern.
     """
     rv = ""
-    fmtdict = {}
     while "%" in fmt:
         idx = fmt.index("%")  # a ValueError can't happen here
         rv += fmt[:idx]
         try:
             patt = PATT_DICT[fmt[idx+1]]
-            fmtdict[fmt[idx+1]] = None
         except KeyError:
             raise ValueError(f"Unknown format specifier: {fmt[idx+1]!r}")
         except IndexError:
@@ -98,8 +98,7 @@ def get_pattern(fmt: str) -> re.Pattern :
         rv += patt
         fmt = fmt[idx+2:]
     rv = f" *(?P<DTIME>{rv})"
-    patt = re.compile(rv)
-    return patt
+    return re.compile(rv)
 
 def fmt_td(tdobj: datetime.timedelta) -> str:
     """
@@ -112,31 +111,29 @@ def fmt_td(tdobj: datetime.timedelta) -> str:
     Returns:
       String representation of tdobj using w,d,h,m units.
     """
-    seconds = tdobj.seconds
-    days = tdobj.days
-    weeks = days // 7
-    days %= 7
-    hours = seconds // 3600
+    # https://gist.github.com/thatalextaylor/7408395
+    rv = ""
+    seconds_float = tdobj.total_seconds()
+    if seconds_float < 0:
+        rv += "-"
+        seconds_float = -seconds_float
+    seconds = int(seconds_float)
+    weeks = seconds // 604800  # 60*60*24*7
+    seconds %= 604800
+    days = seconds // 86400  # 60*60*24
+    seconds %= 86400
+    hours = seconds // 3600  # 60*60
     seconds %= 3600
-    minutes = seconds // 60 
+    minutes = seconds // 60  # 60
     seconds %= 60
 
-    # Built string to be returned
-    res_str = ""
-
     if weeks > 0:
-        res_str += f"{weeks} weeks"
+        rv += f"{weeks} weeks, "
     if days > 0:
-        if res_str:
-            res_str += ", "
-        res_str += f"{days} days"
+        rv += f"{days} days, "
     if hours > 0:
-        if res_str:
-            res_str += ", "
-        res_str += f"{hours} hours"
+        rv += f"{hours} hours, "
     if minutes > 0:
-        if res_str:
-            res_str += ", "
-        res_str += f"{minutes} minutes"
-    # Remaining seconds is ignored for now
-    return res_str
+        rv += f"{minutes} minutes, "
+    # Remaining seconds are ignored for now
+    return rv[:-2]
