@@ -3,7 +3,7 @@ Lex and evaluate input.
 """
 from pprint import pprint
 
-from typing import Tuple, Dict, Union, List
+from typing import Tuple, Union, List
 import dataclasses
 import datetime
 import re
@@ -175,8 +175,6 @@ def infix_to_postfix(toks: List[tokens.Token]) -> List[tokens.Token]:
 def eval_postfix(toks: List[tokens.Token]) -> Union[tokens.DTIME,
                                                     tokens.SUNIT]:
     stack = []
-    dt = None
-    td = None
     for tok in toks:
         if isinstance(tok, tokens.SUNIT) or isinstance(tok, tokens.DTIME):
             stack.append(tok)

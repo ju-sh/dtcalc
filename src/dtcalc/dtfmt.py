@@ -83,8 +83,6 @@ def get_pattern(fmt: str) -> re.Pattern :
     Accept a unix date style format string and return corresponding compiled
     regex pattern.
     """
-    fmt_len = len(fmt) - 1
-    #rv = "^"
     rv = ""
     fmtdict = {}
     while "%" in fmt:

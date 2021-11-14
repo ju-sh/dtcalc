@@ -3,7 +3,6 @@ import re
 
 import pytest
 
-from dtcalc.consts import TOKPATTS
 from dtcalc.lexeval import next_tok, evaluate, infix_to_postfix, eval_postfix, lexer, sunit_to_td, lexeval, LexError
 import dtcalc.tokens as tokens
 import dtcalc.dtfmt
@@ -39,7 +38,7 @@ class TestTokpatts:
         (" 3d  ", 0, 3, "3", "d"),
         ("432w  ", 0, 4, "432", "w"),
     ])
-    def test_sunit(self, inp, start, end, scale, unit):
+    def test_sunit(self, TOKPATTS, inp, start, end, scale, unit):
         mobj = TOKPATTS["SUNIT"].match(inp)
         mdict = mobj.groupdict()
         assert mobj.start() == start
@@ -47,11 +46,12 @@ class TestTokpatts:
         assert mdict["_SCALE"] == scale
         assert mdict["_UNIT"] == unit
 
-    @pytest.mark.parametrize("inp,start,end,dtstr", [
-        (" 2021/11/15 ", 0, 11, "2021/11/15"),
+    @pytest.mark.parametrize("inp,start,end,indtfmt,dtstr", [
+        (" 2021/11/15 ", 0, 11, "%Y/%m/%d", "2021/11/15"),
     ])
     # Just consider %Y/%m/%d format for now
-    def test_dtime(self, inp, start, end, dtstr):
+    def test_dtime(self, TOKPATTS, inp, start, end, indtfmt, dtstr):
+        TOKPATTS["DTIME"] = dtcalc.dtfmt.get_pattern(indtfmt)
         mobj = TOKPATTS["DTIME"].match(inp)
         assert mobj.start() == start
         assert mobj.end() == end
@@ -63,7 +63,7 @@ class TestTokpatts:
         ("   ( ", "LPAR", 0, 4, "("),
         ("  ) ", "RPAR", 0, 3, ")"),
     ])
-    def test_others(self, inp, toktype, start, end, expected):
+    def test_others(self, TOKPATTS, inp, toktype, start, end, expected):
         mobj = TOKPATTS[toktype].match(inp)
         assert mobj.start() == start
         assert mobj.end() == end
@@ -81,7 +81,7 @@ class TestNextTok:
         (" ) d ad", "%Y/%m/%d", (tokens.RPAR(0, 2), 2)),
     ])
     def test_valid(self, TOKPATTS, inp, indtfmt, expected):
-        TOKPATTS["DTIME"] = dtcalc.dtfmt.get_pattern(indtfmt),
+        TOKPATTS["DTIME"] = dtcalc.dtfmt.get_pattern(indtfmt)
         assert next_tok(inp, TOKPATTS, indtfmt) == expected
 
     def test_invalid(self, TOKPATTS):
@@ -186,11 +186,11 @@ def test_eval_postfix(toks, expected):
       tokens.RPAR(start=0, end=1)]),
 ])
 def test_lexer(TOKPATTS, inp, indtfmt, expected):
-    TOKPATTS["DTIME"] = dtcalc.dtfmt.get_pattern(indtfmt),
+    TOKPATTS["DTIME"] = dtcalc.dtfmt.get_pattern(indtfmt)
     assert lexer(inp, TOKPATTS, indtfmt) == expected
 
 @pytest.mark.parametrize("inp,in_dtfmt,out_dtfmt,expected",[
-    ("2021/11/09 +  2d", "%Y/%m/%d", "%Y/%m/%d", "2021/11,11")  # datetime.datetime(2021, 11, 11)),
+    ("2021/11/09 +  2d", "%Y/%m/%d", "%Y/%m/%d", "2021/11/11")  # datetime.datetime(2021, 11, 11)),
 ])
 def test_lexeval(inp, in_dtfmt, out_dtfmt, expected):
     assert lexeval(inp, in_dtfmt, out_dtfmt) == expected
