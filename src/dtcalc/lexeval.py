@@ -2,18 +2,20 @@
 Lex and evaluate input.
 """
 
-from typing import Tuple, Union, List
+from typing import Tuple, Union, List, Dict
 import dataclasses
 import datetime
 import re
 
-#from dtcalc.consts import TOKPATTS, INDTFMT
 import dtcalc.tokens as tokens
 import dtcalc.dtfmt
 
 
 @dataclasses.dataclass
 class LexError(Exception):
+    """
+    Exception to be raised when lexer fails.
+    """
     src: str
     pos: int
 
@@ -44,7 +46,7 @@ def sunit_to_td(scale: int, unit: str) -> datetime.timedelta:
     raise ValueError("Invalid unit!")
 
 # XXX: remove pos arg as it's always 0, and expand LexError
-def next_tok(inp: str, TOKPATTS, INDTFMT: str, pos: int = 0) -> Tuple[tokens.Token, int]:
+def next_tok(inp: str, tokpatts, indtfmt: str, pos: int = 0) -> Tuple[tokens.Token, int]:
     """
     Get next token by matching the regex patterns of the valid tokens.
 
@@ -55,8 +57,8 @@ def next_tok(inp: str, TOKPATTS, INDTFMT: str, pos: int = 0) -> Tuple[tokens.Tok
     Raises:
       LexError: When next token is invalid.
     """
-    for toktype in TOKPATTS:
-        mobj = TOKPATTS[toktype].match(inp, pos)
+    for toktype in tokpatts:
+        mobj = tokpatts[toktype].match(inp, pos)
         if mobj is not None:
             # leading white space would be included, yeah
             start = mobj.start()
@@ -73,44 +75,49 @@ def next_tok(inp: str, TOKPATTS, INDTFMT: str, pos: int = 0) -> Tuple[tokens.Tok
                 tdval = sunit_to_td(scale, unit)
                 return tokens.SUNIT(start, end, tdval), end
             #elif toktype == "DTIME":
-            dtval = datetime.datetime.strptime(mobj["DTIME"], INDTFMT)
+            dtval = datetime.datetime.strptime(mobj["DTIME"], indtfmt)
             return tokens.DTIME(start, end, dtval), end
     raise LexError(inp, pos)
 
-def evaluate(op: tokens.OP, fst: tokens.Token, snd: tokens.Token) -> tokens.Token:
-    if op.value == "+":
+def evaluate(oprtr: tokens.OP, fst: tokens.Token, snd: tokens.Token) -> tokens.Token:
+    """
+    Perform operation using given operator and operands and return result.
+    For use during postfix expression evaluation.
+
+    Arguments:
+      oprtr: operator
+      fst: first operand
+      snd: second operand
+
+    Returns:
+      Value of 'fst oprtr snd'
+    """
+    if oprtr.value == "+":
         if isinstance(fst, tokens.DTIME):
             if isinstance(snd, tokens.DTIME):  # D,D,+
                 raise ValueError("Can't add two dates!")
-            # elif isinstance(snd, tokens.SUNIT):
-            else:  # D,S,+
+            if isinstance(snd, tokens.SUNIT):
                 return tokens.DTIME(-1, -1, fst.value + snd.value)
-        #elif isinstance(fst, tokens.SUNIT):
-        else:
+        elif isinstance(fst, tokens.SUNIT):
             if isinstance(snd, tokens.DTIME):  # S,D,+
-                #tdval = sunit_to_td(fst)
                 return tokens.DTIME(-1, -1, snd.value + fst.value)
-            #elif isinstance(snd, tokens.SUNIT):
-            else:  # S,S,+
-                return tokens.SUNIT(-1, -1, fst.value + snd.value) 
-    #elif op.value == "-":
-    else:
+            if isinstance(snd, tokens.SUNIT):  # S,S,+
+                return tokens.SUNIT(-1, -1, fst.value + snd.value)
+    if oprtr.value == "-":
         if isinstance(fst, tokens.DTIME):
             if isinstance(snd, tokens.DTIME):  # D,D,-
                 return tokens.SUNIT(-1, -1, fst.value - snd.value)
-            # elif isinstance(snd, tokens.SUNIT):
-            else:  # D,S,-
+            if isinstance(snd, tokens.SUNIT):  # D,S,-
                 return tokens.DTIME(-1, -1, fst.value - snd.value)
 
-        #elif isinstance(fst, tokens.SUNIT):
-        else:
+        elif isinstance(fst, tokens.SUNIT):
             if isinstance(snd, tokens.DTIME):  # S,D,-
                 raise ValueError("Can't negate a lone datetime!")
-            #elif isinstance(snd, tokens.SUNIT):
-            else:  # S,S,-
-                return tokens.SUNIT(-1, -1, fst.value - snd.value) 
-            
-def lexer(inp: str, TOKPATTS, INDTFMT: str) -> List[tokens.Token]:
+            if isinstance(snd, tokens.SUNIT):  # S,S,-
+                return tokens.SUNIT(-1, -1, fst.value - snd.value)
+
+def lexer(inp: str, tokpatts: Dict[str, re.Pattern],
+          indtfmt: str) -> List[tokens.Token]:
     """
     Perform lexical analysis (tokenization).
     Accept an input string and produce a list of tokens
@@ -120,16 +127,16 @@ def lexer(inp: str, TOKPATTS, INDTFMT: str) -> List[tokens.Token]:
     Returns:
       List of tokens.Token objects in infix form.
     """
-    rv = []
+    toks = []
     while inp:
-        tok, pos = next_tok(inp, TOKPATTS, INDTFMT)
-        rv.append(tok)
+        tok, pos = next_tok(inp, tokpatts, indtfmt)
+        toks.append(tok)
         inp = inp[pos:].strip()
-    return rv
-    
+    return toks
+
 def infix_to_postfix(toks: List[tokens.Token]) -> List[tokens.Token]:
     """
-    Convert tokens from infix to postfix form. 
+    Convert tokens from infix to postfix form.
 
     Arguments:
       toks: list of tokens in infix form.
@@ -142,7 +149,7 @@ def infix_to_postfix(toks: List[tokens.Token]) -> List[tokens.Token]:
     for tok in toks:
         if isinstance(tok, tokens.LPAR):
             stack.append(tok)
-        elif isinstance(tok, tokens.DTIME) or isinstance(tok, tokens.SUNIT):
+        elif isinstance(tok, (tokens.DTIME, tokens.SUNIT)):
             post.append(tok)
         elif isinstance(tok, tokens.OP):
             try:
@@ -151,8 +158,8 @@ def infix_to_postfix(toks: List[tokens.Token]) -> List[tokens.Token]:
                     stok = stack.pop()
                     post.append(stok)
                 stack.append(tok)
-            except IndexError:
-                raise ValueError("Malformed input!")
+            except IndexError as inderr:
+                raise ValueError("Malformed input!") from inderr
         #elif isinstance(tok, tokens.RPAR):
         else:
             try:
@@ -160,8 +167,8 @@ def infix_to_postfix(toks: List[tokens.Token]) -> List[tokens.Token]:
                     stok = stack.pop()
                     post.append(stok)
                 stack.pop()  # pop the tokens.LPAR
-            except IndexError:
-                raise ValueError("Unmatched parenthesis!")
+            except IndexError as inderr:
+                raise ValueError("Unmatched parenthesis!") from inderr
     # stack should be empty at this point
     if stack:
         raise ValueError("Unmatched parenthesis!")
@@ -169,18 +176,27 @@ def infix_to_postfix(toks: List[tokens.Token]) -> List[tokens.Token]:
 
 def eval_postfix(toks: List[tokens.Token]) -> Union[tokens.DTIME,
                                                     tokens.SUNIT]:
+    """
+    Evaluate using a stack a list of tokens arranged in postfix
+    notation order.
+
+    Arguments:
+      toks: a postfix expression of tokens stored as list.
+
+    Returns:
+      Value of the postfix expression after evaluation.
+    """
     stack = []
     for tok in toks:
-        if isinstance(tok, tokens.SUNIT) or isinstance(tok, tokens.DTIME):
+        if isinstance(tok, (tokens.SUNIT, tokens.DTIME)):
             stack.append(tok)
-        #elif isinstance(tok, tokens.OP):
-        else:
+        elif isinstance(tok, tokens.OP):
             snd = stack.pop()
             fst = stack.pop()
             val = evaluate(tok, fst, snd)
             stack.append(val)
     return stack[-1]
-            
+
 def lexeval(inp: str, in_dtfmt: str, out_dtfmt: str) -> str:
     """
     Driver function for performing input evaluation.
@@ -194,7 +210,7 @@ def lexeval(inp: str, in_dtfmt: str, out_dtfmt: str) -> str:
       String representation of resultant datetime or timedelta
     """
 
-    TOKPATTS = {
+    tokpatts = {
         # No conflicts as of now. So order shouldn't matter
         "LPAR": re.compile(r' *(?P<LPAR>\()'),
         "RPAR": re.compile(r' *(?P<RPAR>\))'),
@@ -204,7 +220,7 @@ def lexeval(inp: str, in_dtfmt: str, out_dtfmt: str) -> str:
     }
 
 
-    infix_toks = lexer(inp, TOKPATTS, in_dtfmt)
+    infix_toks = lexer(inp, tokpatts, in_dtfmt)
     postfix_toks = infix_to_postfix(infix_toks)
     result = eval_postfix(postfix_toks)
     if isinstance(result, tokens.DTIME):

@@ -3,7 +3,8 @@ import re
 
 import pytest
 
-from dtcalc.lexeval import next_tok, evaluate, infix_to_postfix, eval_postfix, lexer, sunit_to_td, lexeval, LexError
+from dtcalc.lexeval import (next_tok, evaluate, infix_to_postfix,
+                            eval_postfix, lexer, sunit_to_td, lexeval, LexError)
 import dtcalc.tokens as tokens
 import dtcalc.dtfmt
 
@@ -16,7 +17,7 @@ def TOKPATTS():
         "SUNIT": re.compile(r' *(?P<SUNIT>(?P<_SCALE>\d+)(?P<_UNIT>w|d|h|m))'),
         #"DTIME": dtcalc.dtfmt.get_pattern(INDTFMT),
     }
-            
+
 class TestSunitToTD:
     @pytest.mark.parametrize("scale,unit,expected", [
         (2, "w", datetime.timedelta(days=2*7)),
@@ -120,9 +121,9 @@ class TestEvaluate:
         assert evaluate(op, fst, snd) == expected
 
     @pytest.mark.parametrize("op,fst,snd",[
-        (tokens.OP(-1,-1,"+"),
-         tokens.DTIME(-1,-1,datetime.datetime(2021,11,10)),
-         tokens.DTIME(-1,-1,datetime.datetime(2021,11,10))),
+        (tokens.OP(-1, -1, "+"),
+         tokens.DTIME(-1, -1, datetime.datetime(2021,11,10)),
+         tokens.DTIME(-1, -1, datetime.datetime(2021,11,10))),
 
         (tokens.OP(-1,-1,"-"),
          tokens.SUNIT(-1, -1, datetime.timedelta(days=3)),

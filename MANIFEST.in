@@ -1,0 +1,10 @@
+graft tests
+
+include LICENSE.md
+include tox.ini
+include .pylintrc
+include .flake8
+include mypy.ini
+include .coveragerc
+
+global-exclude __pycache__ *.py[oc] *.sw[op]

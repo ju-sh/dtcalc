@@ -9,5 +9,8 @@ if __name__ == "__main__":
     parser.add_argument("input")
 
     args = parser.parse_args()
-    result = lexeval(args.input, args.in_dtfmt, args.out_dtfmt)
-    print(result)
+    try:
+        result = lexeval(args.input, args.in_dtfmt, args.out_dtfmt)
+        print(result)
+    except Exception as expt:
+        print(f"Error: {expt.args[0]}")

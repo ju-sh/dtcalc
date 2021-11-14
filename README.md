@@ -105,30 +105,30 @@ Since it doesn't make much sense to add datetimes , addition of two datetime val
 ## Datetime format codes
 The actual value of some of the format codes are locale-dependent. Examples are as per `en_US` locale.
 
- - 'd': Day of month as zero padded integer (eg: 12)
- - 'f': Millisecond as zero padded integer (eg: 012345)
- - 'H': Hour (24-hour clock format) as zero padded integer (eg: 22)
- - 'I': Hour (12-hour clock format) as zero padded integer (eg: 10)
- - 'j': Day of year as zero padded integer (eg: 012)
- - 'm': Month as zero padded integer (eg: 02)
- - 'M': Minute as zero padded integer (eg: 59)
- - 'S': Second as zero padded integer (eg: 59)
- - 'U': Week number of year (with Sunday as first day) as zero padded integer (eg: 51)
- - 'w': Week day as integer (Sunday is 0)
- - 'y': Year without century as zero padded integer (eg: 21)
- - 'Y': Year with century (eg: 2021)
- - 'z': UTC offset (eg: +0530, -0200)
- - 'A': Full weekday name (locale dependent) (eg: Sunday)
- - 'a': Abbreviated weekday name (locale dependent) (eg: Sun)
- - 'B': Full month name (locale dependent) (eg: January)
- - 'b': Abbreviated month name (locale dependent) (eg: Jan)
- - 'p': AM/PM
- - '%': literal '%'. Used as escape.
+ - `d`: Day of month as zero padded integer (eg: 12)
+ - `f`: Millisecond as zero padded integer (eg: 012345)
+ - `H`: Hour (24-hour clock format) as zero padded integer (eg: 22)
+ - `I`: Hour (12-hour clock format) as zero padded integer (eg: 10)
+ - `j`: Day of year as zero padded integer (eg: 012)
+ - `m`: Month as zero padded integer (eg: 02)
+ - `M`: Minute as zero padded integer (eg: 59)
+ - `S`: Second as zero padded integer (eg: 59)
+ - `U`: Week number of year (with Sunday as first day) as zero padded integer (eg: 51)
+ - `w`: Week day as integer (Sunday is 0)
+ - `y`: Year without century as zero padded integer (eg: 21)
+ - `Y`: Year with century (eg: 2021)
+ - `z`: UTC offset (eg: +0530, -0200)
+ - `A`: Full weekday name (locale dependent) (eg: Sunday)
+ - `a`: Abbreviated weekday name (locale dependent) (eg: Sun)
+ - `B`: Full month name (locale dependent) (eg: January)
+ - `b`: Abbreviated month name (locale dependent) (eg: Jan)
+ - `p`: AM/PM
+ - `%`: literal '%'. Used as escape.
 
 <!--
- - 'G':
- - 'u':
- - 'V':
+ - `G`:
+ - `u`:
+ - `V`:
 -->
 
 ## Todo
