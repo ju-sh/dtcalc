@@ -1,10 +1,22 @@
 import datetime
+import re
 
 import pytest
 
 from dtcalc.consts import TOKPATTS
 from dtcalc.lexeval import next_tok, evaluate, infix_to_postfix, eval_postfix, lexer, sunit_to_td, lexeval, LexError
 import dtcalc.tokens as tokens
+import dtcalc.dtfmt
+
+@pytest.fixture
+def TOKPATTS():
+    return  {
+        "LPAR": re.compile(r' *(?P<LPAR>\()'),
+        "RPAR": re.compile(r' *(?P<RPAR>\))'),
+        "OP": re.compile(r' *(?P<OP>\+|-)'),
+        "SUNIT": re.compile(r' *(?P<SUNIT>(?P<_SCALE>\d+)(?P<_UNIT>w|d|h|m))'),
+        #"DTIME": dtcalc.dtfmt.get_pattern(INDTFMT),
+    }
             
 class TestSunitToTD:
     @pytest.mark.parametrize("scale,unit,expected", [
@@ -58,23 +70,24 @@ class TestTokpatts:
         assert mobj[toktype] == expected
 
 class TestNextTok:
-    @pytest.mark.parametrize("inp,expected", [
+    @pytest.mark.parametrize("inp,indtfmt,expected", [
         # XXX: try different date formats
-        (" 2021/11/13 ", (tokens.DTIME(0, 11, datetime.datetime(2021, 11, 13)), 11)),
-        (" 2d ad", (tokens.SUNIT(0, 3, datetime.timedelta(days=2)), 3)),
-        (" 32w ad", (tokens.SUNIT(0, 4, datetime.timedelta(weeks=32)), 4)),
-        (" + ", (tokens.OP(0, 2, "+"), 2)),
-        ("- ", (tokens.OP(0, 1, "-"), 1)),
-        (" (d ad", (tokens.LPAR(0, 2), 2)),
-        (" ) d ad", (tokens.RPAR(0, 2), 2)),
+        (" 2021/11/13 ", "%Y/%m/%d", (tokens.DTIME(0, 11, datetime.datetime(2021, 11, 13)), 11)),
+        (" 2d ad", "%Y/%m/%d", (tokens.SUNIT(0, 3, datetime.timedelta(days=2)), 3)),
+        (" 32w ad", "%Y/%m/%d", (tokens.SUNIT(0, 4, datetime.timedelta(weeks=32)), 4)),
+        (" + ", "%Y/%m/%d", (tokens.OP(0, 2, "+"), 2)),
+        ("- ", "%Y/%m/%d", (tokens.OP(0, 1, "-"), 1)),
+        (" (d ad", "%Y/%m/%d", (tokens.LPAR(0, 2), 2)),
+        (" ) d ad", "%Y/%m/%d", (tokens.RPAR(0, 2), 2)),
     ])
-    def test_valid(self, inp, expected):
-        assert next_tok(inp, 0) == expected
+    def test_valid(self, TOKPATTS, inp, indtfmt, expected):
+        TOKPATTS["DTIME"] = dtcalc.dtfmt.get_pattern(indtfmt),
+        assert next_tok(inp, TOKPATTS, indtfmt) == expected
 
-    def test_invalid(self):
+    def test_invalid(self, TOKPATTS):
         inp = "aaaa"
         with pytest.raises(LexError):
-            next_tok(inp, 0)
+            next_tok(inp, TOKPATTS, "%Y/%m/%d")
 
 class TestEvaluate:
     @pytest.mark.parametrize("op,fst,snd,expected",[
@@ -162,8 +175,8 @@ class TestInfixToPostfix:
 def test_eval_postfix(toks, expected):
     assert eval_postfix(toks) == expected
 
-@pytest.mark.parametrize("inp,expected",[
-    ("2021/09/21 +( 2d - 3w)",
+@pytest.mark.parametrize("inp,indtfmt,expected",[
+    ("2021/09/21 +( 2d - 3w)", "%Y/%m/%d",
 
      [tokens.DTIME(start=0, end=10, value=datetime.datetime(2021, 9, 21, 0, 0)),
       tokens.OP(start=0, end=1, value='+'), tokens.LPAR(start=0, end=1),
@@ -172,20 +185,15 @@ def test_eval_postfix(toks, expected):
       tokens.SUNIT(start=0, end=2, value=datetime.timedelta(days=21)),
       tokens.RPAR(start=0, end=1)]),
 ])
-def test_lexer(inp, expected):
-    assert lexer(inp) == expected
+def test_lexer(TOKPATTS, inp, indtfmt, expected):
+    TOKPATTS["DTIME"] = dtcalc.dtfmt.get_pattern(indtfmt),
+    assert lexer(inp, TOKPATTS, indtfmt) == expected
 
-@pytest.mark.parametrize("inp,expected",[
-    ("  3d", (tokens.SUNIT(0, 4, datetime.timedelta(days=3)), 4)),
+@pytest.mark.parametrize("inp,in_dtfmt,out_dtfmt,expected",[
+    ("2021/11/09 +  2d", "%Y/%m/%d", "%Y/%m/%d", "2021/11,11")  # datetime.datetime(2021, 11, 11)),
 ])
-def test_next_tok(inp, expected):
-    assert next_tok(inp) == expected
-
-@pytest.mark.parametrize("inp,expected",[
-    ("2021/11/09 +  2d", datetime.datetime(2021, 11, 11)),
-])
-def test_lexeval(inp, expected):
-    assert lexeval(inp) == expected
+def test_lexeval(inp, in_dtfmt, out_dtfmt, expected):
+    assert lexeval(inp, in_dtfmt, out_dtfmt) == expected
 
 
 

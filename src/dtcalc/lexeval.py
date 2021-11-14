@@ -1,13 +1,16 @@
 """
 Lex and evaluate input.
 """
+from pprint import pprint
 
 from typing import Tuple, Dict, Union, List
 import dataclasses
 import datetime
+import re
 
-from dtcalc.consts import TOKPATTS, INDTFMT
+#from dtcalc.consts import TOKPATTS, INDTFMT
 import dtcalc.tokens as tokens
+import dtcalc.dtfmt
 
 
 @dataclasses.dataclass
@@ -42,7 +45,7 @@ def sunit_to_td(scale: int, unit: str) -> datetime.timedelta:
     raise ValueError("Invalid unit!")
 
 # XXX: remove pos arg as it's always 0, and expand LexError
-def next_tok(inp: str, pos: int = 0) -> Tuple[tokens.Token, int]:
+def next_tok(inp: str, TOKPATTS, INDTFMT: str, pos: int = 0) -> Tuple[tokens.Token, int]:
     """
     Get next token by matching the regex patterns of the valid tokens.
 
@@ -108,7 +111,8 @@ def evaluate(op: tokens.OP, fst: tokens.Token, snd: tokens.Token) -> tokens.Toke
             else:  # S,S,-
                 return tokens.SUNIT(-1, -1, fst.value - snd.value) 
             
-def lexer(inp: str) -> List[tokens.Token]:
+def lexer(inp: str, TOKPATTS, INDTFMT: str) -> List[tokens.Token]:
+    pprint(TOKPATTS)
     """
     Perform lexical analysis (tokenization).
     Accept an input string and produce a list of tokens
@@ -120,7 +124,7 @@ def lexer(inp: str) -> List[tokens.Token]:
     """
     rv = []
     while inp:
-        tok, pos = next_tok(inp, 0)
+        tok, pos = next_tok(inp, TOKPATTS, INDTFMT)
         rv.append(tok)
         inp = inp[pos:].strip()
     return rv
@@ -168,7 +172,8 @@ def infix_to_postfix(toks: List[tokens.Token]) -> List[tokens.Token]:
         raise ValueError("Unmatched parenthesis!")
     return post
 
-def eval_postfix(toks: List[tokens.Token]) -> Union[tokens.DTIME, tokens.SUNIT]:
+def eval_postfix(toks: List[tokens.Token]) -> Union[tokens.DTIME,
+                                                    tokens.SUNIT]:
     stack = []
     dt = None
     td = None
@@ -183,8 +188,35 @@ def eval_postfix(toks: List[tokens.Token]) -> Union[tokens.DTIME, tokens.SUNIT]:
             stack.append(val)
     return stack[-1]
             
-def lexeval(inp: str, indtfmt: str) -> Union[datetime.datetime, datetime.timedelta]:
-    infix_toks = lexer(inp)
+def lexeval(inp: str, in_dtfmt: str, out_dtfmt: str) -> str:
+    """
+    Driver function for performing input evaluation.
+
+    Arguments:
+      inp: input string
+      in_dtfmt: input date format
+      out_dtfmt: output date format
+
+    Returns:
+      String representation of resultant datetime or timedelta
+    """
+
+    TOKPATTS = {
+        # No conflicts as of now. So order shouldn't matter
+        "LPAR": re.compile(r' *(?P<LPAR>\()'),
+        "RPAR": re.compile(r' *(?P<RPAR>\))'),
+        "OP": re.compile(r' *(?P<OP>\+|-)'),
+        "SUNIT": re.compile(r' *(?P<SUNIT>(?P<_SCALE>\d+)(?P<_UNIT>w|d|h|m))'),
+        "DTIME": dtcalc.dtfmt.get_pattern(in_dtfmt),
+    }
+
+
+    infix_toks = lexer(inp, TOKPATTS, in_dtfmt)
     postfix_toks = infix_to_postfix(infix_toks)
     result = eval_postfix(postfix_toks)
-    return result.value
+    if isinstance(result, tokens.DTIME):
+        res_str = result.value.strftime(out_dtfmt)
+    #elif isinstance(result, tokens.SUNIT):
+    else:
+        res_str = dtcalc.dtfmt.fmt_td(result.value)
+    return res_str

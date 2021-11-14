@@ -78,7 +78,7 @@ PATT_DICT = {
 #                        'Z'),
 }
 
-def get_pattern(fmt: str) -> str :
+def get_pattern(fmt: str) -> re.Pattern :
     """
     Accept a unix date style format string and return corresponding compiled
     regex pattern.
@@ -102,3 +102,43 @@ def get_pattern(fmt: str) -> str :
     rv = f" *(?P<DTIME>{rv})"
     patt = re.compile(rv)
     return patt
+
+def fmt_td(tdobj: datetime.timedelta) -> str:
+    """
+    Format a timedelta object into a string.
+    Use w,d,h,m units.
+
+    Arguments:
+      tdobj: timedelta object to be formatted into string.
+
+    Returns:
+      String representation of tdobj using w,d,h,m units.
+    """
+    seconds = tdobj.seconds
+    days = tdobj.days
+    weeks = days // 7
+    days %= 7
+    hours = seconds // 3600
+    seconds %= 3600
+    minutes = seconds // 60 
+    seconds %= 60
+
+    # Built string to be returned
+    res_str = ""
+
+    if weeks > 0:
+        res_str += f"{weeks} weeks"
+    if days > 0:
+        if res_str:
+            res_str += ", "
+        res_str += f"{days} days"
+    if hours > 0:
+        if res_str:
+            res_str += ", "
+        res_str += f"{hours} hours"
+    if minutes > 0:
+        if res_str:
+            res_str += ", "
+        res_str += f"{minutes} minutes"
+    # Remaining seconds is ignored for now
+    return res_str
