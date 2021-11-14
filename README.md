@@ -35,8 +35,11 @@ dtcalc [--in-dtfmt INDTFMT] [--out-dtfmt OUTDTFMT] INPUT
 ### Example usages
 
 ```
-$ dtcalc "3d (2021-11-04 - 2021-11-06)" --in-dtfmt "%Y-%m-%d"
--2 days
+$ dtcalc "3d + (2021-11-04 - 2021-11-06)" --in-dtfmt "%Y-%m-%d"
+1 days
+
+$ dtcalc "2021/02/11 - 2021/01/11"
+4 weeks, 3 days
 
 $ dtcalc "3d (2021-11-04 11:30 - 2021-11-04 10:30)" --in-dtfmt "%Y-%m-%d %H:%M"m dtc
 1 hours
