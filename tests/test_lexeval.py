@@ -3,7 +3,7 @@ import datetime
 import pytest
 
 from dtcalc.consts import TOKPATTS
-from dtcalc.lexeval import next_tok, evaluate, infix_to_postfix, eval_postfix, lexer, sunit_to_td, LexError
+from dtcalc.lexeval import next_tok, evaluate, infix_to_postfix, eval_postfix, lexer, sunit_to_td, lexeval, LexError
 import dtcalc.tokens as tokens
             
 class TestSunitToTD:
@@ -136,16 +136,21 @@ class TestInfixToPostfix:
     def test_valid(self, toks, expected):
         assert infix_to_postfix(toks) == expected
 
-# XXX:
-#    @pytest.mark.parametrize("toks",[
-#         # "2d + (3w "
-#        ([tokens.SUNIT(start=0, end=2, value=datetime.timedelta(days=2)),
-#          tokens.OP(start=0, end=1, value='+'), tokens.LPAR(start=0, end=1),
-#          tokens.SUNIT(start=0, end=2, value=datetime.timedelta(days=21))]),
-#    ])
-#    def test_invalid(self, toks):
-#        with pytest.raises(ValueError):
-#            infix_to_postfix(toks)
+    @pytest.mark.parametrize("toks",[
+         # "2d + (3w "
+        ([tokens.SUNIT(start=0, end=2, value=datetime.timedelta(days=2)),
+          tokens.OP(start=0, end=1, value='+'), tokens.LPAR(start=0, end=1),
+          tokens.SUNIT(start=0, end=2, value=datetime.timedelta(weeks=3))]),
+
+         # "2d) + 3w "
+        ([tokens.SUNIT(start=0, end=2, value=datetime.timedelta(days=2)),
+          tokens.RPAR(start=0, end=2),
+          tokens.OP(start=0, end=1, value='+'),
+          tokens.SUNIT(start=0, end=2, value=datetime.timedelta(weeks=3))]),
+    ])
+    def test_invalid(self, toks):
+        with pytest.raises(ValueError):
+            infix_to_postfix(toks)
 
 @pytest.mark.parametrize("toks,expected",[
     ([tokens.DTIME(start=0, end=10, value=datetime.datetime(2021, 9, 21, 0, 0)),
@@ -175,3 +180,13 @@ def test_lexer(inp, expected):
 ])
 def test_next_tok(inp, expected):
     assert next_tok(inp) == expected
+
+@pytest.mark.parametrize("inp,expected",[
+    ("2021/11/09 +  2d", datetime.datetime(2021, 11, 11)),
+])
+def test_lexeval(inp, expected):
+    assert lexeval(inp) == expected
+
+
+
+

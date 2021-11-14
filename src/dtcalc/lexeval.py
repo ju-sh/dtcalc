@@ -160,10 +160,12 @@ def infix_to_postfix(toks: List[tokens.Token]) -> List[tokens.Token]:
                 stack.pop()  # pop the tokens.LPAR
             except IndexError:
                 raise ValueError("Unmatched parenthesis!")
-        print(f"post: {post}")
-        print(f"stack: {stack}")
-        print("--------------")
+        #print(f"post: {post}")
+        #print(f"stack: {stack}")
+        #print("--------------")
     # stack should be empty at this point
+    if stack:
+        raise ValueError("Unmatched parenthesis!")
     return post
 
 def eval_postfix(toks: List[tokens.Token]) -> Union[tokens.DTIME, tokens.SUNIT]:
@@ -185,3 +187,4 @@ def lexeval(inp: str, indtfmt: str) -> Union[datetime.datetime, datetime.timedel
     infix_toks = lexer(inp)
     postfix_toks = infix_to_postfix(infix_toks)
     result = eval_postfix(postfix_toks)
+    return result.value

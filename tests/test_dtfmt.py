@@ -22,7 +22,7 @@ class TestGetPattern:
 
     @pytest.mark.parametrize("fmt", [
         ("%Y %m %  %d"),
-        #("%Y %m %"),  # lone % at end XXX
+        ("%Y %m %"),  # lone % at end XXX
         ("%Y %m %!  %d"),
     ])
     def test_invalid(self, fmt):
