@@ -2,7 +2,7 @@
 Lex and evaluate input.
 """
 
-from typing import Tuple, Union, List, Dict
+from typing import Tuple, Union, List, Dict, Optional
 import dataclasses
 import datetime
 import re
@@ -49,8 +49,8 @@ def sunit_to_td(scale: int, unit: str) -> datetime.timedelta:
 
 
 # XXX: remove pos arg as it's always 0, and expand LexError
-def next_tok(inp: str, tokpatts, indtfmt:
-             str, pos: int = 0) -> Tuple[tokens.Token, int]:
+def next_tok(inp: str, tokpatts, indtfmt: str,
+             pos: int = 0) -> Tuple[tokens.Token, int]:
     """
     Get next token by matching the regex patterns of the valid tokens.
 
@@ -61,6 +61,7 @@ def next_tok(inp: str, tokpatts, indtfmt:
     Raises:
       LexError: When next token is invalid.
     """
+    tok: Optional[tokens.Token] = None
     for toktype in tokpatts:
         mobj = tokpatts[toktype].match(inp, pos)
         if mobj is not None:
@@ -70,23 +71,25 @@ def next_tok(inp: str, tokpatts, indtfmt:
 
             if toktype == "DTIME":
                 dtval = datetime.datetime.strptime(mobj["DTIME"], indtfmt)
-                return tokens.DTIME(start, end, dtval), end
-            if toktype == "SUNIT":
+                tok, npos = tokens.DTIME(start, end, dtval), end
+            elif toktype == "SUNIT":
                 scale = int(mobj["_SCALE"])
                 unit = mobj["_UNIT"]
                 tdval = sunit_to_td(scale, unit)
-                return tokens.SUNIT(start, end, tdval), end
-            if toktype == "OP":
-                return tokens.OP(start, end, mobj["OP"]), end
-            if toktype == "LPAR":
-                return tokens.LPAR(start, end), end
-            if toktype == "RPAR":
-                return tokens.RPAR(start, end), end
-    raise LexError(inp, pos)
+                tok, npos = tokens.SUNIT(start, end, tdval), end
+            elif toktype == "OP":
+                tok, npos = tokens.OP(start, end, mobj["OP"]), end
+            elif toktype == "LPAR":
+                tok, npos = tokens.LPAR(start, end), end
+            elif toktype == "RPAR":
+                tok, npos = tokens.RPAR(start, end), end
+    if tok is None:
+        raise LexError(inp, pos)
+    return tok, npos
 
 
 def evaluate(oprtr: tokens.OP, fst: tokens.Token,
-             snd: tokens.Token) -> tokens.Token:
+             snd: tokens.Token) -> Union[tokens.DTIME, tokens.SUNIT]:
     """
     Perform operation using given operator and operands and return result.
     For use during postfix expression evaluation.
@@ -102,7 +105,7 @@ def evaluate(oprtr: tokens.OP, fst: tokens.Token,
     Raises:
       ValueError: when oprtr is not a valid OP token
     """
-    res: tokens.Token
+    res: Union[tokens.DTIME, tokens.SUNIT]
     if oprtr.value == "+":
         if isinstance(fst, tokens.DTIME):
             if isinstance(snd, tokens.DTIME):  # D,D,+
@@ -154,6 +157,10 @@ def infix_to_postfix(toks: List[tokens.Token]) -> List[tokens.Token]:
     """
     Convert tokens from infix to postfix form.
 
+    Probably a form of operator-precedence parsing.
+    https://en.wikipedia.org/wiki/Operator-precedence_parser
+    https://en.wikipedia.org/wiki/Shunting-yard_algorithm
+
     Arguments:
       toks: list of tokens in infix form. Obtained as result of lexing.
     Returns:
@@ -164,7 +171,8 @@ def infix_to_postfix(toks: List[tokens.Token]) -> List[tokens.Token]:
     # type is Union[OP, DTIME, SUNIT] actually
     post: List[tokens.Token] = []
 
-    stack = [tokens.LPAR(-1, -1)]
+    stack: List[tokens.Token] = [tokens.LPAR(-1, -1)]
+
     for tok in toks:
         if isinstance(tok, tokens.LPAR):
             stack.append(tok)
@@ -206,7 +214,8 @@ def eval_postfix(toks: List[tokens.Token]) -> Union[tokens.DTIME,
     Returns:
       Value of the postfix expression after evaluation.
     """
-    stack = []
+    # stack consists only of value in postfix evaluation
+    stack: List[Union[tokens.DTIME, tokens.SUNIT]] = []
     for tok in toks:
         if isinstance(tok, (tokens.SUNIT, tokens.DTIME)):
             stack.append(tok)

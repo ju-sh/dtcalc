@@ -9,4 +9,5 @@ include mypy.ini
 include .coveragerc
 
 prune .github
+exclude Makefile
 global-exclude __pycache__ *.py[oc] *.sw[op]
