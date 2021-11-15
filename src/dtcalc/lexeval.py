@@ -140,7 +140,7 @@ def infix_to_postfix(toks: List[tokens.Token]) -> List[tokens.Token]:
     Convert tokens from infix to postfix form.
 
     Arguments:
-      toks: list of tokens in infix form.
+      toks: list of tokens in infix form. Obtained as result of lexing.
     Returns:
       list of tokens in postfix form.
     """
@@ -188,6 +188,7 @@ def eval_postfix(toks: List[tokens.Token]) -> Union[tokens.DTIME,
       Value of the postfix expression after evaluation.
     """
     stack = []
+    #print(f"inp: {toks}")
     for tok in toks:
         if isinstance(tok, (tokens.SUNIT, tokens.DTIME)):
             stack.append(tok)
@@ -196,6 +197,9 @@ def eval_postfix(toks: List[tokens.Token]) -> Union[tokens.DTIME,
             fst = stack.pop()
             val = evaluate(tok, fst, snd)
             stack.append(val)
+    if len(stack) != 1:
+        raise ValueError("Malformed input!")
+    #print(f"onp: {stack}")
     return stack[-1]
 
 def lexeval(inp: str, in_dtfmt: str, out_dtfmt: str) -> str:
