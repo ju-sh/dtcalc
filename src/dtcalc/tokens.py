@@ -20,6 +20,7 @@ class Token:
     start: int
     end: int
 
+
 @dataclasses.dataclass
 class SUNIT(Token):
     """
@@ -34,6 +35,7 @@ class SUNIT(Token):
     """
     value: datetime.timedelta
 
+
 @dataclasses.dataclass
 class DTIME(Token):
     """
@@ -43,6 +45,7 @@ class DTIME(Token):
       value: datetime.datetime object
     """
     value: datetime.datetime
+
 
 @dataclasses.dataclass
 class OP(Token):
@@ -54,11 +57,13 @@ class OP(Token):
     """
     value: str
 
+
 @dataclasses.dataclass
 class LPAR(Token):
     """
     Represents left parenthesis.
     """
+
 
 @dataclasses.dataclass
 class RPAR(Token):

@@ -16,5 +16,5 @@ if __name__ == "__main__":
     try:
         result = lexeval(args.input, args.in_dtfmt, args.out_dtfmt)
         print(result)
-    except (ValueError, LexError) as expt:
+    except (ValueError, LexError):
         print("Error: Malformed input")
