@@ -102,30 +102,33 @@ def evaluate(oprtr: tokens.OP, fst: tokens.Token,
     Raises:
       ValueError: when oprtr is not a valid OP token
     """
+    res: tokens.Token
     if oprtr.value == "+":
         if isinstance(fst, tokens.DTIME):
             if isinstance(snd, tokens.DTIME):  # D,D,+
                 raise ValueError("Can't add two dates!")
             if isinstance(snd, tokens.SUNIT):
-                return tokens.DTIME(-1, -1, fst.value + snd.value)
-        if isinstance(fst, tokens.SUNIT):
+                res = tokens.DTIME(-1, -1, fst.value + snd.value)
+        elif isinstance(fst, tokens.SUNIT):
             if isinstance(snd, tokens.DTIME):  # S,D,+
-                return tokens.DTIME(-1, -1, snd.value + fst.value)
-            if isinstance(snd, tokens.SUNIT):  # S,S,+
-                return tokens.SUNIT(-1, -1, fst.value + snd.value)
-    if oprtr.value == "-":
+                res = tokens.DTIME(-1, -1, snd.value + fst.value)
+            elif isinstance(snd, tokens.SUNIT):  # S,S,+
+                res = tokens.SUNIT(-1, -1, fst.value + snd.value)
+    elif oprtr.value == "-":
         if isinstance(fst, tokens.DTIME):
             if isinstance(snd, tokens.DTIME):  # D,D,-
-                return tokens.SUNIT(-1, -1, fst.value - snd.value)
-            if isinstance(snd, tokens.SUNIT):  # D,S,-
-                return tokens.DTIME(-1, -1, fst.value - snd.value)
+                res = tokens.SUNIT(-1, -1, fst.value - snd.value)
+            elif isinstance(snd, tokens.SUNIT):  # D,S,-
+                res = tokens.DTIME(-1, -1, fst.value - snd.value)
 
-        if isinstance(fst, tokens.SUNIT):
+        elif isinstance(fst, tokens.SUNIT):
             if isinstance(snd, tokens.DTIME):  # S,D,-
                 raise ValueError("Can't negate a lone datetime!")
             if isinstance(snd, tokens.SUNIT):  # S,S,-
-                return tokens.SUNIT(-1, -1, fst.value - snd.value)
-    raise ValueError(f"Unknown operator: {oprtr.value}")
+                res = tokens.SUNIT(-1, -1, fst.value - snd.value)
+    else:
+        raise ValueError(f"Unknown operator: {oprtr.value}")
+    return res
 
 
 def lexer(inp: str, tokpatts: Dict[str, re.Pattern],
