@@ -7,7 +7,7 @@ import dataclasses
 import datetime
 import re
 
-import dtcalc.tokens as tokens
+from dtcalc import tokens
 import dtcalc.dtfmt
 
 

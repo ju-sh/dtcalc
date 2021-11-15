@@ -1,6 +1,10 @@
+"""
+dtcalc CLI interface
+"""
+
 import argparse
 
-from dtcalc.lexeval import lexeval
+from dtcalc.lexeval import lexeval, LexError
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -12,5 +16,5 @@ if __name__ == "__main__":
     try:
         result = lexeval(args.input, args.in_dtfmt, args.out_dtfmt)
         print(result)
-    except Exception as expt:
-        print(f"Error: Malformed input")
+    except (ValueError, LexError) as expt:
+        print("Error: Malformed input")

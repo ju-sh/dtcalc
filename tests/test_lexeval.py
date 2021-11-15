@@ -213,6 +213,11 @@ class TestLexEval:
         with pytest.raises(ValueError):
             lexeval(inp, in_dtfmt, out_dtfmt)
 
-
-
-
+    @pytest.mark.parametrize("inp,in_dtfmt,out_dtfmt",[
+        ("(safd)", "%Y/%m/%d", "%Y/%m/%d"),
+        ("2dsafd)", "%Y/%m/%d", "%Y/%m/%d"),
+        ("2d safd)", "%Y/%m/%d", "%Y/%m/%d"),
+    ])
+    def test_lexerror(self, inp, in_dtfmt, out_dtfmt):
+        with pytest.raises(LexError):
+            lexeval(inp, in_dtfmt, out_dtfmt)
