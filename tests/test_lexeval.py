@@ -204,33 +204,33 @@ def test_lexer(TOKPATTS, inp, indtfmt, expected):
 
 class TestLexEval:
     @pytest.mark.parametrize("inp,in_dtfmt,out_dtfmt,expected", [
-        ("2021/11/09 +  2d", "%Y/%m/%d", "%Y/%m/%d",
+        (["2021/11/09 +  2d"], "%Y/%m/%d", "%Y/%m/%d",
          "2021/11/11"),  # datetime.datetime(2021, 11, 11))
-        ("2021/11/09 -  2021/11/10", "%Y/%m/%d", "%Y/%m/%d",
+        (["2021/11/09 -  2021/11/10"], "%Y/%m/%d", "%Y/%m/%d",
          "-1 days"),  # datetime.datetime(2021, 11, 11)),
-        ("2d", "%Y/%m/%d", "%Y/%m/%d", "2 days"),
-        ("(2d)", "%Y/%m/%d", "%Y/%m/%d", "2 days"),
+        (["2d"], "%Y/%m/%d", "%Y/%m/%d", "2 days"),
+        (["(2d)"], "%Y/%m/%d", "%Y/%m/%d", "2 days"),
     ])
     def test_valid(self, inp, in_dtfmt, out_dtfmt, expected):
         assert lexeval(inp, in_dtfmt, out_dtfmt) == expected
 
     @pytest.mark.parametrize("inp,in_dtfmt,out_dtfmt", [
-        ("()", "%Y/%m/%d", "%Y/%m/%d"),
-        ("(2d + 3d", "%Y/%m/%d", "%Y/%m/%d"),
-        ("2d (+ 3d", "%Y/%m/%d", "%Y/%m/%d"),
-        ("2d + (3d", "%Y/%m/%d", "%Y/%m/%d"),
-        ("2d 3d", "%Y/%m/%d", "%Y/%m/%d"),
-        ("(2d + 3d 4d)", "%Y/%m/%d", "%Y/%m/%d"),
-        ("(2d + (3d 4d))", "%Y/%m/%d", "%Y/%m/%d"),
+        (["()"], "%Y/%m/%d", "%Y/%m/%d"),
+        (["(2d + 3d"], "%Y/%m/%d", "%Y/%m/%d"),
+        (["2d (+ 3d"], "%Y/%m/%d", "%Y/%m/%d"),
+        (["2d + (3d"], "%Y/%m/%d", "%Y/%m/%d"),
+        (["2d 3d"], "%Y/%m/%d", "%Y/%m/%d"),
+        (["(2d + 3d 4d)"], "%Y/%m/%d", "%Y/%m/%d"),
+        (["(2d + (3d 4d))"], "%Y/%m/%d", "%Y/%m/%d"),
     ])
     def test_invalid(self, inp, in_dtfmt, out_dtfmt):
         with pytest.raises(ValueError):
             lexeval(inp, in_dtfmt, out_dtfmt)
 
     @pytest.mark.parametrize("inp,in_dtfmt,out_dtfmt,errpos", [
-        ("(safd)", "%Y/%m/%d", "%Y/%m/%d", 1),
-        ("2dsafd)", "%Y/%m/%d", "%Y/%m/%d", 2),
-        ("2d safd)", "%Y/%m/%d", "%Y/%m/%d", 3),
+        (["(safd)"], "%Y/%m/%d", "%Y/%m/%d", 1),
+        (["2dsafd)"], "%Y/%m/%d", "%Y/%m/%d", 2),
+        (["2d safd)"], "%Y/%m/%d", "%Y/%m/%d", 3),
     ])
     def test_lexerror(self, inp, in_dtfmt, out_dtfmt, errpos):
         with pytest.raises(LexError) as excinfo:

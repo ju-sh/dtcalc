@@ -246,7 +246,7 @@ def eval_postfix(toks: List[tokens.Token]) -> Union[tokens.DTIME,
     return stack[-1]
 
 
-def lexeval(inp: str, in_dtfmt: str, out_dtfmt: str) -> str:
+def lexeval(inp_lst: List[str], in_dtfmt: str, out_dtfmt: str) -> str:
     """
     Driver function for performing input evaluation.
 
@@ -269,6 +269,7 @@ def lexeval(inp: str, in_dtfmt: str, out_dtfmt: str) -> str:
         "DTIME": dtcalc.dtfmt.get_pattern(in_dtfmt),
     }
 
+    inp = ' '.join(inp_lst)
     infix_toks = lexer(inp, tokpatts, in_dtfmt)
     postfix_toks = infix_to_postfix(infix_toks)
     result = eval_postfix(postfix_toks)
