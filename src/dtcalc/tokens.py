@@ -70,3 +70,7 @@ class RPAR(Token):
     """
     Represents right parenthesis.
     """
+
+@dataclasses.dataclass
+class Alias(Token):
+    value: str

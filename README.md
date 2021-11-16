@@ -167,7 +167,7 @@ The actual value of some of the format codes are locale-dependent. Examples are 
 -->
 
 ## Contribute
-This package was hastily put-together as part of an event and as a result almost certainly has got bugs. If you spot any, please tell me about it. :)
+This package was hastily put-together as part of an event and as a result almost certainly has got bugs. If you spot any, please join in or tell me about it. :)
 
 
 ## Todo

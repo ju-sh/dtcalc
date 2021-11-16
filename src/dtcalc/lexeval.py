@@ -80,6 +80,16 @@ def next_tok(inp: str, tokpatts, indtfmt: str,
                 unit = mobj["_UNIT"]
                 tdval = sunit_to_td(scale, unit)
                 tok, npos = tokens.SUNIT(start, end, tdval), end
+            elif toktype == "SPECIAL":
+                valstr = mobj["SPECIAL"]
+                cur_dt = datetime.datetime.now()
+                if valstr == "today":
+                    tokval = datetime.datetime(cur_dt.year, cur_dt.month,
+                                               cur_dt.day)
+                    tok = tokens.DTIME(start, end, tokval)
+                elif valstr == "now":
+                    tok = tokens.DTIME(start, end, cur_dt)
+                npos = end
             elif toktype == "OP":
                 tok, npos = tokens.OP(start, end, mobj["OP"]), end
             elif toktype == "LPAR":
@@ -255,6 +265,7 @@ def lexeval(inp: str, in_dtfmt: str, out_dtfmt: str) -> str:
         "RPAR": re.compile(r' *(?P<RPAR>\))'),
         "OP": re.compile(r' *(?P<OP>\+|-)'),
         "SUNIT": re.compile(r' *(?P<SUNIT>(?P<_SCALE>\d+)(?P<_UNIT>w|d|h|m))'),
+        "SPECIAL": re.compile(r' *(?P<SPECIAL>today|now)'),
         "DTIME": dtcalc.dtfmt.get_pattern(in_dtfmt),
     }
 
