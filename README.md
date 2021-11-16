@@ -41,13 +41,13 @@ $ dtcalc "3d + (2021-11-04 - 2021-11-06)" --in-dtfmt "%Y-%m-%d"
 $ dtcalc "2021/02/11 - 2021/01/11"
 4 weeks, 3 days
 
-$ dtcalc "3d (2021-11-04 11:30 - 2021-11-04 10:30)" --in-dtfmt "%Y-%m-%d %H:%M"m dtc
-1 hours
+$ dtcalc "3d - (2021-11-04 11:30 - 2021-11-04 10:30)" --in-dtfmt "%Y-%m-%d %H:%M"
+2 days, 23 hours
 
-$ dtcal --out-dtfmt "%B %d, %Y" "2021/04/11 + 22w"
+$ dtcalc --out-dtfmt "%B %d, %Y" "2021/04/11 + 22w"
 September 12, 2021
 
-$ dtcal --out-dtfmt "%B %d, %Y" "2021/04/11 - 2020/11/12 +2d + 3w + 4h + 2m"
+$ dtcalc --out-dtfmt "%B %d, %Y" "2021/04/11 - 2020/11/12 +2d + 3w + 4h + 2m"
 24 weeks, 5 days, 4 hours, 2 minutes
 ```
 
