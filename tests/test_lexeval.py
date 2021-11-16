@@ -91,12 +91,12 @@ class TestNextTok:
     ])
     def test_valid(self, TOKPATTS, inp, indtfmt, expected):
         TOKPATTS["DTIME"] = dtcalc.dtfmt.get_pattern(indtfmt)
-        assert next_tok(inp, TOKPATTS, indtfmt) == expected
+        assert next_tok(inp, TOKPATTS, indtfmt, 0) == expected
 
     def test_invalid(self, TOKPATTS):
         inp = "aaaa"
         with pytest.raises(LexError):
-            next_tok(inp, TOKPATTS, "%Y/%m/%d")
+            next_tok(inp, TOKPATTS, "%Y/%m/%d", 0)
 
 
 class TestEvaluate:
@@ -191,11 +191,11 @@ def test_eval_postfix(toks, expected):
     ("2021/09/21 +( 2d - 3w)", "%Y/%m/%d",
 
      [tokens.DTIME(0, 10, value=datetime.datetime(2021, 9, 21, 0, 0)),
-      tokens.OP(0, 1, '+'), tokens.LPAR(0, 1),
-      tokens.SUNIT(0, 2, datetime.timedelta(days=2)),
-      tokens.OP(0, 1, '-'),
-      tokens.SUNIT(0, 2, datetime.timedelta(days=21)),
-      tokens.RPAR(0, 1)]),
+      tokens.OP(11, 12, '+'), tokens.LPAR(12, 13),
+      tokens.SUNIT(14, 16, datetime.timedelta(days=2)),
+      tokens.OP(17, 18, '-'),
+      tokens.SUNIT(19, 21, datetime.timedelta(days=21)),
+      tokens.RPAR(21, 22)]),
 ])
 def test_lexer(TOKPATTS, inp, indtfmt, expected):
     TOKPATTS["DTIME"] = dtcalc.dtfmt.get_pattern(indtfmt)
@@ -227,11 +227,12 @@ class TestLexEval:
         with pytest.raises(ValueError):
             lexeval(inp, in_dtfmt, out_dtfmt)
 
-    @pytest.mark.parametrize("inp,in_dtfmt,out_dtfmt", [
-        ("(safd)", "%Y/%m/%d", "%Y/%m/%d"),
-        ("2dsafd)", "%Y/%m/%d", "%Y/%m/%d"),
-        ("2d safd)", "%Y/%m/%d", "%Y/%m/%d"),
+    @pytest.mark.parametrize("inp,in_dtfmt,out_dtfmt,errpos", [
+        ("(safd)", "%Y/%m/%d", "%Y/%m/%d", 1),
+        ("2dsafd)", "%Y/%m/%d", "%Y/%m/%d", 2),
+        ("2d safd)", "%Y/%m/%d", "%Y/%m/%d", 3),
     ])
-    def test_lexerror(self, inp, in_dtfmt, out_dtfmt):
-        with pytest.raises(LexError):
+    def test_lexerror(self, inp, in_dtfmt, out_dtfmt, errpos):
+        with pytest.raises(LexError) as excinfo:
             lexeval(inp, in_dtfmt, out_dtfmt)
+        assert excinfo.value.pos == errpos

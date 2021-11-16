@@ -15,8 +15,12 @@ import dtcalc.dtfmt
 class LexError(Exception):
     """
     Exception to be raised when lexer fails.
+
+    Input string is not explicitly stored as there is only one input.
+
+    Attributes:
+      pos: start index of first unrecognized token.
     """
-    src: str
     pos: int
 
 
@@ -48,9 +52,8 @@ def sunit_to_td(scale: int, unit: str) -> datetime.timedelta:
     raise ValueError("Invalid unit!")
 
 
-# XXX: remove pos arg as it's always 0, and expand LexError
 def next_tok(inp: str, tokpatts, indtfmt: str,
-             pos: int = 0) -> Tuple[tokens.Token, int]:
+             pos: int) -> Tuple[tokens.Token, int]:
     """
     Get next token by matching the regex patterns of the valid tokens.
 
@@ -84,7 +87,7 @@ def next_tok(inp: str, tokpatts, indtfmt: str,
             elif toktype == "RPAR":
                 tok, npos = tokens.RPAR(start, end), end
     if tok is None:
-        raise LexError(inp, pos)
+        raise LexError(pos)
     return tok, npos
 
 
@@ -146,10 +149,14 @@ def lexer(inp: str, tokpatts: Dict[str, re.Pattern],
       List of tokens.Token objects in infix form.
     """
     toks = []
-    while inp:
-        tok, pos = next_tok(inp, tokpatts, indtfmt)
-        toks.append(tok)
-        inp = inp[pos:].strip()
+    pos = 0
+    inplen = len(inp)
+    while pos < inplen:
+        if inp[pos].isspace():
+            pos += 1
+        else:
+            tok, pos = next_tok(inp, tokpatts, indtfmt, pos)
+            toks.append(tok)
     return toks
 
 
